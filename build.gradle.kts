@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "1.6.10"
 }
 
-group = "haff.xyz"
+group = "xyz.haff"
 version = "0.1.0"
 
 repositories {
