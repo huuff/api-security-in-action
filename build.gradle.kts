@@ -13,6 +13,11 @@ tasks.wrapper {
     gradleVersion = "7.4"
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
+val kotestVersion = "5.3.0"
 dependencies {
     implementation(kotlin("stdlib"))
 
@@ -22,4 +27,8 @@ dependencies {
     implementation("org.dalesbred:dalesbred:1.3.2")
     implementation("org.slf4j:slf4j-simple:1.7.30")
     implementation("org.kodein.di:kodein-di:7.11.0")
+
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+    testImplementation("io.mockk:mockk:1.12.4")
 }

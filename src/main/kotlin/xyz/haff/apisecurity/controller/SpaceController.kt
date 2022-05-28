@@ -28,7 +28,7 @@ class SpaceController(
                 )
             } else {
                 database.updateUnique("""
-                    INSERT INTO spaces(space_id, name, owner) VALUES ($spaceId, "$spaceName", "$owner")
+                    INSERT INTO spaces(space_id, name, owner) VALUES ($spaceId, '$spaceName', '$owner')
                 """)
             }
 
