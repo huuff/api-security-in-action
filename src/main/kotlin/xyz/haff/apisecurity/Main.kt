@@ -14,6 +14,14 @@ fun main(args: Array<String>) {
 
     val spaceController = SpaceController(database, config)
 
+    if (config.jsonOnly) {
+        before({req, res ->
+            if (req.requestMethod() == "POST" && req.contentType() != "application/json") {
+                halt(415, JSONObject().apply { put("error", "Only application/json supported")}.toString())
+            }
+        })
+    }
+
     post("/spaces", spaceController::createSpace)
 
     after({ _, response ->
@@ -32,7 +40,12 @@ fun main(args: Array<String>) {
     exception(JSONException::class.java, ::badRequest)
     exception(EmptyResultException::class.java) { _, _, res -> res.status(400) }
 
-    afterAfter { _, res -> res.header("Server", "")}
+    afterAfter { _, res ->
+        if (config.jsonOnly) {
+            res.type("application/json;charset=utf-8")
+        }
+        res.header("Server", "")
+    }
 }
 
 private fun badRequest(ex: Exception, request: Request, response: Response) {
