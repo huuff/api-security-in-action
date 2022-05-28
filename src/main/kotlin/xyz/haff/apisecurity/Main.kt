@@ -5,8 +5,8 @@ import spark.Spark.*
 import xyz.haff.apisecurity.controller.SpaceController
 
 fun main(args: Array<String>) {
-    val database = createDatabase()
     val config = Config.fromProperties()
+    val database = createDatabase(config)
 
     val spaceController = SpaceController(database, config)
 

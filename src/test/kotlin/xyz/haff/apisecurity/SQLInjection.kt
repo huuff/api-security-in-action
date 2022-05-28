@@ -59,4 +59,23 @@ class SQLInjection : FunSpec({
         responseBody["name"] shouldBe "'); DROP TABLE spaces; --"
     }
 
+    test("can't inject SQL with unprivileged user") {
+        val config = Config(dbUnprivilegedUser = true)
+        val database = createDatabase(config)
+        val spaceController = SpaceController(database, config)
+
+        val request = mockk<Request> {
+            every { body() } returns """
+                {
+                    "name": "test",
+                    "owner": "'); DROP TABLE spaces; --"
+                }
+            """.trimIndent()
+        }
+        val response = mockk<Response>(relaxed = true)
+
+        val exception = shouldThrow<DatabaseSQLException> { spaceController.createSpace(request, response) }
+        exception.message shouldContain "Not enough rights"
+    }
+
 })

@@ -3,7 +3,8 @@ package xyz.haff.apisecurity
 import java.util.*
 
 data class Config(
-    val preparedStatements: Boolean = false
+    val preparedStatements: Boolean = false,
+    val dbUnprivilegedUser: Boolean = false,
 ) {
     companion object {
         fun fromProperties(): Config {
@@ -12,7 +13,8 @@ data class Config(
             }
 
             return Config(
-                preparedStatements = (properties["PREPARED_STATEMENTS"] as String).toBooleanStrict()
+                preparedStatements = (properties["PREPARED_STATEMENTS"] as String).toBooleanStrict(),
+                dbUnprivilegedUser = (properties["DB_UNPRIVILEGED_USER"] as String).toBooleanStrict(),
             )
         }
     }
