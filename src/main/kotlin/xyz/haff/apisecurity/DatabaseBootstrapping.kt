@@ -8,6 +8,7 @@ import java.nio.file.Paths
 fun createDatabase(): Database {
     val adminDatasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter", "password")
     val adminDatabase = Database.forDataSource(adminDatasource)
+    adminDatabase.update("DROP ALL OBJECTS")
 
     val schema = Paths.get(object {}.javaClass.getResource("/schema.sql")!!.toURI())
     adminDatabase.update(Files.readString(schema))
