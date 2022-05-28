@@ -27,7 +27,7 @@ class SpaceController(val database: Database) {
             response.header("Location", spaceURI)
 
             return@withTransaction JSONObject().apply {
-                put("name", "spaceName")
+                put("name", spaceName)
                 put("uri", spaceURI)
             }
         }
