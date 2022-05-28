@@ -78,4 +78,24 @@ class SQLInjection : FunSpec({
         exception.message shouldContain "Not enough rights"
     }
 
+    // Actually, it's still perfectly possible to inject SQL through space name, since that doesn't get validated for
+    // symbols
+    test("can't inject SQL with input validation") {
+        val config = Config(inputValidation = true)
+        val database = createDatabase(config)
+        val spaceController = SpaceController(database, config)
+
+        val request = mockk<Request> {
+            every { body() } returns """
+                {
+                    "name": "test",
+                    "owner": "'); DROP TABLE spaces; --"
+                }
+            """.trimIndent()
+        }
+        val response = mockk<Response>(relaxed = true)
+
+        shouldThrow<IllegalArgumentException> { spaceController.createSpace(request, response) }
+    }
+
 })
