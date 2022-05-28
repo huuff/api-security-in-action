@@ -40,11 +40,26 @@ fun main(args: Array<String>) {
     exception(JSONException::class.java, ::badRequest)
     exception(EmptyResultException::class.java) { _, _, res -> res.status(400) }
 
-    afterAfter { _, res ->
+    afterAfter { _, res -> with(res) {
         if (config.jsonOnly) {
-            res.type("application/json;charset=utf-8")
+            type("application/json;charset=utf-8")
         }
-        res.header("Server", "")
+        // Don't leak server information
+        header("Server", "")
+
+        // Disable cache TODO justify this
+        header("Cache-Control", "no-store")
+
+        // TODO justify this, maybe put behind some CSP flag
+        header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox")
+        if (config.xssProtection) {
+            // Don't let the browser incorrectly guess the content type
+            header("X-Content-Type-Options", "nosniff")
+            // Ironically, xssProtection disables X-XSS-Protection, since that has vulnerabilities of its own
+            header("X-XSS-Protection", "0")
+            // Prevent responses from being loaded in an iframe
+            header("X-Frame-Options", "DENY")
+        }}
     }
 }
 
