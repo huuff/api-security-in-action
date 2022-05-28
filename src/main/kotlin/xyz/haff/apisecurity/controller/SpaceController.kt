@@ -6,6 +6,8 @@ import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.Config
 
+// TODO: Properly separate concerns and clean code to accommodate varying configs? For example, the functionality
+// might be separated into decorators. The inserting into the database could be a strategy pattern
 class SpaceController(
     private val database: Database,
     private val config: Config,
@@ -15,6 +17,8 @@ class SpaceController(
         val json = JSONObject(request.body())
         val spaceName = json.getString("name")
         val owner = json.getString("owner")
+
+        if (config.inputValidation) validateInput(spaceName, owner)
 
         return database.withTransaction {
             val spaceId = database.findUniqueLong("SELECT NEXT VALUE FOR space_id_seq")
@@ -40,6 +44,16 @@ class SpaceController(
                 put("name", spaceName)
                 put("uri", spaceURI)
             }
+        }
+    }
+
+    private fun validateInput(spaceName: String, owner: String) {
+        if (spaceName.length > 255) {
+            throw IllegalArgumentException("space name must be less than 256 characters")
+        }
+
+        if (!owner.matches(Regex("[a-zA-Z][a-zA-Z0-9]{1,29}"))) {
+            throw IllegalArgumentException("usernames must start with a letter and contain only letters and numbers")
         }
     }
 }
