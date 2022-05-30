@@ -1,5 +1,6 @@
 package xyz.haff.apisecurity
 
+import com.google.common.util.concurrent.RateLimiter
 import org.dalesbred.result.EmptyResultException
 import org.json.JSONException
 import org.json.JSONObject
@@ -15,9 +16,19 @@ fun main(args: Array<String>) {
     val spaceController = SpaceController(database, config)
 
     if (config.jsonOnly) {
-        before({req, res ->
+        before({req, _ ->
             if (req.requestMethod() == "POST" && req.contentType() != "application/json") {
                 halt(415, JSONObject().apply { put("error", "Only application/json supported")}.toString())
+            }
+        })
+    }
+
+    if (config.rateLimitPerSecond > 0) {
+        val rateLimiter = RateLimiter.create(config.rateLimitPerSecond.toDouble())
+        before({ _, res ->
+            if (!rateLimiter.tryAcquire()) {
+                res.header("Retry-After", "2")
+                halt(429)
             }
         })
     }
