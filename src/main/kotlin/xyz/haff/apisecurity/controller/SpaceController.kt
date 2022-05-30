@@ -14,12 +14,17 @@ class SpaceController(
     private val config: Config,
     ) {
 
+    // TODO: Implement post message (I didn't earlier?)
     fun createSpace(request: Request, response: Response): JSONObject {
         val json = JSONObject(request.body())
         val spaceName = json.getString("name")
         val owner = json.getString("owner")
 
         if (config.inputValidation) validateInput(spaceName, owner)
+
+        if (config.enableAuthentication && (request.attribute<String>("subject") != owner)) {
+            throw IllegalArgumentException("Owner must match authenticated user")
+        }
 
         return database.withTransaction {
             val spaceId = database.findUniqueLong("SELECT NEXT VALUE FOR space_id_seq")

@@ -35,6 +35,7 @@ fun main(args: Array<String>) {
         })
     }
 
+    before(userController::authenticate)
     post("/spaces", spaceController::createSpace)
     post("/users", userController::registerUser)
 

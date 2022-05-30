@@ -10,7 +10,8 @@ data class Config(
     val xssProtection: Boolean = false, // TODO: Test it
     val dontLeakServerInformation: Boolean = false,
     val contentSecurityPolicy: Boolean = false,
-    val rateLimitPerSecond: Int = 0 // TODO: Test it
+    val rateLimitPerSecond: Int = 0, // TODO: Test it
+    val enableAuthentication: Boolean = false, // TODO: Test it
 ) {
     companion object {
         fun fromProperties(): Config {
@@ -27,6 +28,7 @@ data class Config(
                 dontLeakServerInformation = (properties["DONT_LEAK_SERVER_INFORMATION"] as String).toBooleanStrict(),
                 contentSecurityPolicy = (properties["CONTENT_SECURITY_POLICY"] as String).toBooleanStrict(),
                 rateLimitPerSecond = (properties["RATE_LIMIT_PER_SECOND"] as String).toInt(),
+                enableAuthentication = (properties["ENABLE_AUTHENTICATION"] as String).toBooleanStrict(),
             )
         }
     }
