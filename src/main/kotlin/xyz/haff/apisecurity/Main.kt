@@ -47,10 +47,12 @@ fun main(args: Array<String>) {
         // Don't leak server information
         header("Server", "")
 
-        // Disable cache TODO justify this
+        // Disable cache
         header("Cache-Control", "no-store")
 
-        // TODO justify this, maybe put behind some CSP flag
+        // default-src: 'none': prevent the response from loading scripts or resources
+        // frame-ancestors: 'none': prevent the response from being loaded into an iframe
+        // sandbox: disables scripts from being executed
         header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox")
         if (config.xssProtection) {
             // Don't let the browser incorrectly guess the content type
