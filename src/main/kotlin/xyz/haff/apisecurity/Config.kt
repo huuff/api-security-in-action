@@ -10,7 +10,7 @@ data class Config(
     val xssProtection: Boolean = false, // TODO: Test it
     val dontLeakServerInformation: Boolean = false,
     val contentSecurityPolicy: Boolean = false,
-    val rateLimitPerSecond: Int = 0,
+    val rateLimitPerSecond: Int = 0 // TODO: Test it
 ) {
     companion object {
         fun fromProperties(): Config {

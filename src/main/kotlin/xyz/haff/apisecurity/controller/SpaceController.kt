@@ -5,6 +5,7 @@ import org.json.JSONObject
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.Config
+import xyz.haff.apisecurity.util.NAME_PATTERN
 
 // TODO: Properly separate concerns and clean code to accommodate varying configs? For example, the functionality
 // might be separated into decorators. The inserting into the database could be a strategy pattern
@@ -52,7 +53,7 @@ class SpaceController(
             throw IllegalArgumentException("space name must be less than 256 characters")
         }
 
-        if (!owner.matches(Regex("[a-zA-Z][a-zA-Z0-9]{1,29}"))) {
+        if (!owner.matches(NAME_PATTERN)) {
             throw IllegalArgumentException("usernames must start with a letter and contain only letters and numbers")
         }
     }

@@ -28,6 +28,7 @@ dependencies {
     implementation("org.slf4j:slf4j-simple:1.7.36")
     implementation("org.kodein.di:kodein-di:7.11.0")
     implementation("com.google.guava:guava:31.1-jre")
+    implementation("com.lambdaworks:scrypt:1.4.0")
 
     testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")

@@ -18,5 +18,11 @@ CREATE SEQUENCE msg_id_seq;
 CREATE INDEX msg_timestamp_idx ON messages(msg_time);
 CREATE UNIQUE INDEX space_name_idx ON spaces(name);
 
+CREATE TABLE users(
+    user_id VARCHAR(30) PRIMARY KEY,
+    pw_hash VARCHAR(255) NOT NULL
+);
+
 CREATE USER natter_api_user PASSWORD 'password';
-GRANT SELECT, INSERT ON spaces, messages TO natter_api_user;
+GRANT SELECT, INSERT ON spaces, messages, users TO natter_api_user;
+

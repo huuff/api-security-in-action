@@ -8,12 +8,14 @@ import spark.Request
 import spark.Response
 import spark.Spark.*
 import xyz.haff.apisecurity.controller.SpaceController
+import xyz.haff.apisecurity.controller.UserController
 
 fun main(args: Array<String>) {
     val config = Config.fromProperties()
     val database = createDatabase(config)
 
     val spaceController = SpaceController(database, config)
+    val userController = UserController(database, config)
 
     if (config.jsonOnly) {
         before({req, _ ->
@@ -34,6 +36,7 @@ fun main(args: Array<String>) {
     }
 
     post("/spaces", spaceController::createSpace)
+    post("/users", userController::registerUser)
 
     after({ _, response ->
         response.type("application/json")
