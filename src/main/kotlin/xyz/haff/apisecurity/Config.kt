@@ -12,6 +12,7 @@ data class Config(
     val contentSecurityPolicy: Boolean = false,
     val rateLimitPerSecond: Int = 0, // TODO: Test it
     val enableAuthentication: Boolean = false, // TODO: Test it
+    val https: Boolean = false,
 ) {
     companion object {
         fun fromProperties(): Config {

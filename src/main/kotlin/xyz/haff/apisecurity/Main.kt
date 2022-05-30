@@ -17,6 +17,11 @@ fun main(args: Array<String>) {
     val spaceController = SpaceController(database, config)
     val userController = UserController(database, config)
 
+    if (config.https) {
+        val cert = object {}.javaClass.getResource("/certificate.p12")!!.file
+        secure(cert, "changeit", null, null)
+    }
+
     if (config.jsonOnly) {
         before({req, _ ->
             if (req.requestMethod() == "POST" && req.contentType() != "application/json") {
