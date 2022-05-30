@@ -13,7 +13,13 @@ data class Config(
     val rateLimitPerSecond: Int = 0, // TODO: Test it
     val enableAuthentication: Boolean = false, // TODO: Test it
     val https: Boolean = false,
+    val hsts: Boolean = false,
 ) {
+    init {
+        if (!https && hsts)
+            throw IllegalStateException("Can't have HSTS without HTTPS!")
+    }
+
     companion object {
         fun fromProperties(): Config {
             val properties = Properties().apply {

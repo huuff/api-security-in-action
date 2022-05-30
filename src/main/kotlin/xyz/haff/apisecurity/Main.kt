@@ -23,9 +23,9 @@ fun main(args: Array<String>) {
     }
 
     if (config.jsonOnly) {
-        before({req, _ ->
+        before({ req, _ ->
             if (req.requestMethod() == "POST" && req.contentType() != "application/json") {
-                halt(415, JSONObject().apply { put("error", "Only application/json supported")}.toString())
+                halt(415, JSONObject().apply { put("error", "Only application/json supported") }.toString())
             }
         })
     }
@@ -60,33 +60,39 @@ fun main(args: Array<String>) {
     exception(JSONException::class.java, ::badRequest)
     exception(EmptyResultException::class.java) { _, _, res -> res.status(400) }
 
-    afterAfter { _, res -> with(res) {
-        if (config.jsonOnly) {
-            type("application/json;charset=utf-8")
+    afterAfter { _, res ->
+        with(res) {
+            if (config.jsonOnly) {
+                type("application/json;charset=utf-8")
+            }
+
+            if (config.dontLeakServerInformation) {
+                header("Server", "")
+            }
+
+            // Disable cache
+            header("Cache-Control", "no-store")
+
+            if (config.contentSecurityPolicy) {
+                // default-src: 'none': prevent the response from loading scripts or resources
+                // frame-ancestors: 'none': prevent the response from being loaded into an iframe
+                // sandbox: disables scripts from being executed
+                header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox")
+            }
+
+            if (config.xssProtection) {
+                // Don't let the browser incorrectly guess the content type
+                header("X-Content-Type-Options", "nosniff")
+                // Ironically, xssProtection disables X-XSS-Protection, since that has vulnerabilities of its own
+                header("X-XSS-Protection", "0")
+                // Prevent responses from being loaded in an iframe
+                header("X-Frame-Options", "DENY")
+            }
+
+            if (config.hsts) {
+                header("Strict-Transport-Security", "max-age=31536000")
+            }
         }
-
-        if (config.dontLeakServerInformation) {
-            header("Server", "")
-        }
-
-        // Disable cache
-        header("Cache-Control", "no-store")
-
-        if (config.contentSecurityPolicy) {
-            // default-src: 'none': prevent the response from loading scripts or resources
-            // frame-ancestors: 'none': prevent the response from being loaded into an iframe
-            // sandbox: disables scripts from being executed
-            header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox")
-        }
-
-        if (config.xssProtection) {
-            // Don't let the browser incorrectly guess the content type
-            header("X-Content-Type-Options", "nosniff")
-            // Ironically, xssProtection disables X-XSS-Protection, since that has vulnerabilities of its own
-            header("X-XSS-Protection", "0")
-            // Prevent responses from being loaded in an iframe
-            header("X-Frame-Options", "DENY")
-        }}
     }
 }
 
