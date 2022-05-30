@@ -52,10 +52,13 @@ fun main(args: Array<String>) {
         // Disable cache
         header("Cache-Control", "no-store")
 
-        // default-src: 'none': prevent the response from loading scripts or resources
-        // frame-ancestors: 'none': prevent the response from being loaded into an iframe
-        // sandbox: disables scripts from being executed
-        header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox")
+        if (config.contentSecurityPolicy) {
+            // default-src: 'none': prevent the response from loading scripts or resources
+            // frame-ancestors: 'none': prevent the response from being loaded into an iframe
+            // sandbox: disables scripts from being executed
+            header("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; sandbox")
+        }
+
         if (config.xssProtection) {
             // Don't let the browser incorrectly guess the content type
             header("X-Content-Type-Options", "nosniff")
