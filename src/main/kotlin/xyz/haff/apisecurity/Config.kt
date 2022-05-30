@@ -8,6 +8,7 @@ data class Config(
     val inputValidation: Boolean = false,
     val jsonOnly: Boolean = false, // TODO: Test it
     val xssProtection: Boolean = false, // TODO: Test it
+    val dontLeakServerInformation: Boolean = false,
 ) {
     companion object {
         fun fromProperties(): Config {
@@ -21,6 +22,7 @@ data class Config(
                 inputValidation = (properties["INPUT_VALIDATION"] as String).toBooleanStrict(),
                 jsonOnly = (properties["JSON_ONLY"] as String).toBooleanStrict(),
                 xssProtection = (properties["XSS_PROTECTION"] as String).toBooleanStrict(),
+                dontLeakServerInformation = (properties["DONT_LEAK_SERVER_INFORMATION"] as String).toBooleanStrict()
             )
         }
     }

@@ -44,8 +44,10 @@ fun main(args: Array<String>) {
         if (config.jsonOnly) {
             type("application/json;charset=utf-8")
         }
-        // Don't leak server information
-        header("Server", "")
+
+        if (config.dontLeakServerInformation) {
+            header("Server", "")
+        }
 
         // Disable cache
         header("Cache-Control", "no-store")
