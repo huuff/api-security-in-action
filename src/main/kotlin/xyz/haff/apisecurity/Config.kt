@@ -22,7 +22,7 @@ data class Config(
     }
 
     companion object {
-        fun fromProperties(): Config {
+        fun fromExternal(): Config {
             val properties = Properties().apply {
                 load(Thread.currentThread().contextClassLoader.getResourceAsStream("config.properties"))
             }

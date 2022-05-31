@@ -1,9 +1,11 @@
 package xyz.haff.apisecurity
 
 import com.google.common.util.concurrent.RateLimiter
+import org.dalesbred.Database
 import org.dalesbred.result.EmptyResultException
 import org.json.JSONException
 import org.json.JSONObject
+import org.kodein.di.*
 import spark.Request
 import spark.Response
 import spark.Spark.*
@@ -12,11 +14,14 @@ import xyz.haff.apisecurity.controller.SpaceController
 import xyz.haff.apisecurity.controller.UserController
 
 fun main(args: Array<String>) {
-    val config = Config.fromProperties()
-    val database = createDatabase(config)
+    val di = DI {
+        bind<Config> { singleton { Config.fromExternal() }}
+        bind<Database> { singleton { createDatabase(instance()) }}
+    }
+    val config by di.instance<Config>()
 
-    val spaceController = SpaceController(database, config)
-    val userController = UserController(database, config)
+    val spaceController by di.newInstance { SpaceController(instance(), instance()) }
+    val userController by di.newInstance { UserController(instance(), instance()) }
 
     if (config.https) {
         val cert = object {}.javaClass.getResource("/certificate.p12")!!.file
@@ -44,7 +49,7 @@ fun main(args: Array<String>) {
     before(userController::authenticate)
 
     if (config.auditLogging) {
-        val auditController = AuditController(database, config)
+        val auditController by di.newInstance { AuditController(instance(), instance()) }
         before(auditController::auditRequestStart)
         afterAfter(auditController::auditRequestEnd)
         get("/logs", auditController::readAuditLog)
