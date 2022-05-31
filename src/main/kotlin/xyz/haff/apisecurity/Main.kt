@@ -9,5 +9,3 @@ fun main(args: Array<String>) {
     val serverConfigurer by di.newInstance { ServerConfigurer(instance(), instance(), instance(), instance()) }
     serverConfigurer.configure()
 }
-
-

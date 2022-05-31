@@ -8,9 +8,7 @@ import org.kodein.di.singleton
 import xyz.haff.apisecurity.controller.AuditController
 import xyz.haff.apisecurity.controller.SpaceController
 import xyz.haff.apisecurity.controller.UserController
-import xyz.haff.apisecurity.database.SafeSpaceRepository
-import xyz.haff.apisecurity.database.SpaceRepository
-import xyz.haff.apisecurity.database.UnsafeSpaceRepository
+import xyz.haff.apisecurity.database.*
 
 fun createInjectionContext(config: Config = Config.fromExternal()) = DI {
     bind<Config> { singleton { config } }
@@ -20,6 +18,13 @@ fun createInjectionContext(config: Config = Config.fromExternal()) = DI {
         singleton {
             if (config.preparedStatements) { SafeSpaceRepository(instance()) }
             else { UnsafeSpaceRepository(instance()) }
+        }
+    }
+
+    bind<UserRepository> {
+        singleton {
+            if (config.preparedStatements) { SafeUserRepository(instance()) }
+            else { UnsafeUserRepository(instance()) }
         }
     }
 

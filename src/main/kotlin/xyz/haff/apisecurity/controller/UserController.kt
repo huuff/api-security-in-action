@@ -1,19 +1,17 @@
 package xyz.haff.apisecurity.controller
 
 import com.lambdaworks.crypto.SCryptUtil
-import org.dalesbred.Database
-import org.dalesbred.integration.kotlin.findOptional
 import org.json.JSONObject
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.Config
+import xyz.haff.apisecurity.database.UserRepository
 import xyz.haff.apisecurity.util.NAME_PATTERN
 import java.nio.charset.StandardCharsets
 import java.util.*
 
-// TODO: Repositories for safe/unsafe
 class UserController(
-    private val database: Database,
+    private val repository: UserRepository,
     private val config: Config,
 ) {
     fun registerUser(request: Request, response: Response): JSONObject {
@@ -29,7 +27,7 @@ class UserController(
         }
 
         val hash = SCryptUtil.scrypt(password, 32768, 8, 1)
-        database.updateUnique("INSERT INTO users(user_id, pw_hash) VALUES(?, ?)", username, hash)
+        repository.save(username, hash)
 
         response.status(201)
         response.header("Location", "/users/$username")
@@ -48,8 +46,8 @@ class UserController(
         if (config.inputValidation && !username.matches(NAME_PATTERN))
             throw IllegalArgumentException("Invalid username")
 
-        val hash = database.findOptional<String>("SELECT pw_hash FROM users WHERE user_id = ?", username)
-        if (hash.isPresent && SCryptUtil.check(password, hash.get())) {
+        val hash = repository.findHashedPassword(username)
+        if (hash?.let { SCryptUtil.check(password, hash)} == true) {
             request.attribute("subject", username)
         }
 
