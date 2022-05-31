@@ -8,19 +8,25 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.dalesbred.Database
 import org.dalesbred.DatabaseSQLException
+import org.kodein.di.instance
+import org.kodein.di.newInstance
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.controller.SpaceController
 
-// TODO: These are all broken, use Kodein
 class SQLInjection : FunSpec({
 
-    /*
+    data class SpaceControllerAndDatabase(val spaceController: SpaceController, val database: Database)
+    fun getDeps(config: Config) = createInjectionContext(config).run {
+        val controller by instance<SpaceController>()
+        val database by instance<Database>()
+        SpaceControllerAndDatabase(controller, database)
+    }
+
     test("can inject SQL when there are no protections") {
-        val config = Config(preparedStatements = false)
-        val database = createDatabase()
-        val spaceController = SpaceController(database, config)
+        val (spaceController, database ) = getDeps(Config(preparedStatements = false))
 
         val request = mockk<Request> {
             every { body() } returns """
@@ -40,9 +46,7 @@ class SQLInjection : FunSpec({
     }
 
     test("can't inject SQL with prepared statements") {
-        val config = Config(preparedStatements = true)
-        val database = createDatabase()
-        val spaceController = SpaceController(database, config)
+        val (spaceController, database) = getDeps(Config(preparedStatements = true))
 
         val request = mockk<Request> {
             every { body() } returns """
@@ -62,9 +66,7 @@ class SQLInjection : FunSpec({
     }
 
     test("can't inject SQL with unprivileged user") {
-        val config = Config(dbUnprivilegedUser = true)
-        val database = createDatabase(config)
-        val spaceController = SpaceController(database, config)
+        val (spaceController, _) = getDeps(Config(dbUnprivilegedUser = true))
 
         val request = mockk<Request> {
             every { body() } returns """
@@ -83,9 +85,7 @@ class SQLInjection : FunSpec({
     // Actually, it's still perfectly possible to inject SQL through space name, since that doesn't get validated for
     // symbols
     test("can't inject SQL with input validation") {
-        val config = Config(inputValidation = true)
-        val database = createDatabase(config)
-        val spaceController = SpaceController(database, config)
+        val (spaceController, _) = getDeps(Config(inputValidation = true))
 
         val request = mockk<Request> {
             every { body() } returns """
@@ -99,7 +99,5 @@ class SQLInjection : FunSpec({
 
         shouldThrow<IllegalArgumentException> { spaceController.createSpace(request, response) }
     }
-
-     */
 
 })
