@@ -22,6 +22,8 @@ data class Config(
     }
 
     companion object {
+        // TODO: Implement superseding any of these from environment variables, it'll be useful when I make the switch
+        // to kubernetes
         fun fromExternal(): Config {
             val properties = Properties().apply {
                 load(Thread.currentThread().contextClassLoader.getResourceAsStream("config.properties"))

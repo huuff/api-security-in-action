@@ -11,6 +11,7 @@ import java.time.Instant
 import java.time.temporal.ChronoUnit
 
 // TODO: Test it
+// TODO: Repositories for safe/unsafe
 class AuditController(
     private val database: Database,
     private val config: Config,

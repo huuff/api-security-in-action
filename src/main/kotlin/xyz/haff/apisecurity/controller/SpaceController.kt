@@ -1,18 +1,18 @@
 package xyz.haff.apisecurity.controller
 
-import org.dalesbred.Database
 import org.json.JSONObject
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.Config
+import xyz.haff.apisecurity.database.SpaceRepository
 import xyz.haff.apisecurity.util.NAME_PATTERN
 
 // TODO: Properly separate concerns and clean code to accommodate varying configs? For example, the functionality
-// might be separated into decorators. The inserting into the database could be a strategy pattern
+// might be separated into decorators.
 class SpaceController(
-    private val database: Database,
+    private val spaceRepository: SpaceRepository,
     private val config: Config,
-    ) {
+) {
 
     // TODO: Implement post message (I didn't earlier?)
     fun createSpace(request: Request, response: Response): JSONObject {
@@ -26,30 +26,15 @@ class SpaceController(
             throw IllegalArgumentException("Owner must match authenticated user")
         }
 
-        return database.withTransaction {
-            val spaceId = database.findUniqueLong("SELECT NEXT VALUE FOR space_id_seq")
+        val spaceId = spaceRepository.save(spaceName, owner)
 
-            if (config.preparedStatements) {
-                database.updateUnique(
-                    "INSERT INTO spaces(space_id, name, owner) VALUES (?, ?, ?)",
-                    spaceId,
-                    spaceName,
-                    owner
-                )
-            } else {
-                database.updateUnique("""
-                    INSERT INTO spaces(space_id, name, owner) VALUES ($spaceId, '$spaceName', '$owner')
-                """)
-            }
+        val spaceURI = "/spaces/$spaceId"
+        response.status(201)
+        response.header("Location", spaceURI)
 
-            val spaceURI = "/spaces/$spaceId"
-            response.status(201)
-            response.header("Location", spaceURI)
-
-            return@withTransaction JSONObject().apply {
-                put("name", spaceName)
-                put("uri", spaceURI)
-            }
+        return JSONObject().apply {
+            put("name", spaceName)
+            put("uri", spaceURI)
         }
     }
 

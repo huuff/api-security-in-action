@@ -11,6 +11,7 @@ import xyz.haff.apisecurity.util.NAME_PATTERN
 import java.nio.charset.StandardCharsets
 import java.util.*
 
+// TODO: Repositories for safe/unsafe
 class UserController(
     private val database: Database,
     private val config: Config,
