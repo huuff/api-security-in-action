@@ -7,6 +7,7 @@ import org.json.JSONObject
 import spark.Request
 import spark.Response
 import spark.Spark.*
+import xyz.haff.apisecurity.controller.AuditController
 import xyz.haff.apisecurity.controller.SpaceController
 import xyz.haff.apisecurity.controller.UserController
 
@@ -41,6 +42,14 @@ fun main(args: Array<String>) {
     }
 
     before(userController::authenticate)
+
+    if (config.auditLogging) {
+        val auditController = AuditController(database, config)
+        before(auditController::auditRequestStart)
+        afterAfter(auditController::auditRequestEnd)
+        get("/logs", auditController::readAuditLog)
+    }
+
     post("/spaces", spaceController::createSpace)
     post("/users", userController::registerUser)
 

@@ -14,6 +14,7 @@ data class Config(
     val enableAuthentication: Boolean = false, // TODO: Test it
     val https: Boolean = false,
     val hsts: Boolean = false,
+    val auditLogging: Boolean = false,
 ) {
     init {
         if (!https && hsts)
@@ -36,6 +37,7 @@ data class Config(
                 contentSecurityPolicy = (properties["CONTENT_SECURITY_POLICY"] as String).toBooleanStrict(),
                 rateLimitPerSecond = (properties["RATE_LIMIT_PER_SECOND"] as String).toInt(),
                 enableAuthentication = (properties["ENABLE_AUTHENTICATION"] as String).toBooleanStrict(),
+                auditLogging = (properties["AUDIT_LOGGING"] as String).toBooleanStrict()
             )
         }
     }
