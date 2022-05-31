@@ -28,6 +28,13 @@ fun createInjectionContext(config: Config = Config.fromExternal()) = DI {
         }
     }
 
+    bind<AuditRepository> {
+        singleton {
+            if (config.preparedStatements) { SafeAuditRepository(instance()) }
+            else { UnsafeAuditRepository(instance()) }
+        }
+    }
+
     bind<SpaceController> { singleton { SpaceController(instance(), instance()) } }
     bind<UserController> { singleton { UserController(instance(), instance()) } }
     bind<AuditController> { singleton { AuditController(instance(), instance()) } }
