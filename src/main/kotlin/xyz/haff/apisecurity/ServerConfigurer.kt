@@ -12,6 +12,7 @@ import spark.Spark.*
 import xyz.haff.apisecurity.controller.AuditController
 import xyz.haff.apisecurity.controller.SpaceController
 import xyz.haff.apisecurity.controller.UserController
+import xyz.haff.apisecurity.util.implies
 
 class ServerConfigurer(
     private val config: Config,
@@ -20,29 +21,16 @@ class ServerConfigurer(
     private val auditController: AuditController,
 ) {
 
-    // TODO: Can I pretend some implication operator exists to do this more beautiful? or just an `implies` extension
-    // function on booleans
     fun configure() {
-        if (config.https) {
-            addHTTPS()
-        }
-        if (config.jsonOnly) {
-            addJsonHeaders()
-        }
-
-        if (config.rateLimitPerSecond > 0) {
-            addRateLimiting()
-        }
+        config.https implies { addHTTPS() }
+        config.jsonOnly implies { addJsonHeaders() }
+        (config.rateLimitPerSecond > 0) implies { addRateLimiting() }
 
         before(userController::authenticate)
 
-        if (config.auditLogging) {
-            addAuditLogging()
-        }
+        config.auditLogging implies { addAuditLogging() }
 
-        if (config.enableAuthentication) {
-            before("/spaces", userController::requireAuthentication)
-        }
+        config.enableAuthentication implies { before("/spaces", userController::requireAuthentication) }
         post("/spaces", spaceController::createSpace)
         post("/users", userController::registerUser)
 
