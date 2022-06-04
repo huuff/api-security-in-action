@@ -34,12 +34,16 @@ class ServerConfigurer(
         post("/spaces", spaceController::createSpace)
         config.enableAuthentication implies { post("/users", userController::registerUser) }
 
-        // Not really meaningful since messages aren't implemented
+        // TODO: Test all of this!
         config.enableAuthorization implies {
+            // Not really meaningful since messages aren't implemented
             before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"))
             before("/spaces/:spaceId/messages/*", userController.requirePermission("GET", "r"))
             before("/spaces/:spaceId/messages", userController.requirePermission("GET", "r"))
             before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"))
+
+            before("/spaces/:spaceId/members", userController.requirePermission("POST", "r"))
+            post("/spaces/:spaceId/members", spaceController::addMember)
         }
 
         addExceptionHandlers()

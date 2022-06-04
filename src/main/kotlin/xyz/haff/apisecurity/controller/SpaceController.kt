@@ -43,6 +43,25 @@ class SpaceController(
         }
     }
 
+    fun addMember(request: Request, response: Response): JSONObject {
+        val json = JSONObject(request.body())
+        val spaceId = request.params(":spaceId").toLong()
+        val userToAdd = json.getString("username")
+        val permissions = json.getString("permissions")
+
+        if (!permissions.matches(Regex.fromLiteral("r?w?d?"))) {
+            throw IllegalArgumentException("Invalid permissions")
+        }
+
+        permissionsRepository.save(spaceId, userToAdd, permissions)
+
+        response.status(200)
+        return JSONObject().apply {
+            put("username", userToAdd)
+            put("permissions", permissions)
+        }
+    }
+
     private fun validateInput(spaceName: String, owner: String) {
         if (spaceName.length > 255) {
             throw IllegalArgumentException("space name must be less than 256 characters")
