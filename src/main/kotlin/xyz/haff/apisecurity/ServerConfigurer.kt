@@ -26,13 +26,13 @@ class ServerConfigurer(
         config.jsonOnly implies { addJsonHeaders() }
         (config.rateLimitPerSecond > 0) implies { addRateLimiting() }
 
-        before(userController::authenticate)
+        config.enableAuthentication implies  { before(userController::authenticate) }
 
         config.auditLogging implies { addAuditLogging() }
 
         config.enableAuthentication implies { before("/spaces", userController::requireAuthentication) }
         post("/spaces", spaceController::createSpace)
-        post("/users", userController::registerUser)
+        config.enableAuthentication implies { post("/users", userController::registerUser) }
 
         addExceptionHandlers()
         addResponseHeaders()
