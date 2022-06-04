@@ -4,6 +4,7 @@ import com.lambdaworks.crypto.SCryptUtil
 import org.json.JSONObject
 import spark.Request
 import spark.Response
+import spark.Spark.halt
 import xyz.haff.apisecurity.Config
 import xyz.haff.apisecurity.database.UserRepository
 import xyz.haff.apisecurity.util.NAME_PATTERN
@@ -50,6 +51,13 @@ class UserController(
         if (hash?.let { SCryptUtil.check(password, hash)} == true) {
             request.attribute("subject", username)
         }
+    }
 
+    // TODO: Test it
+    fun requireAuthentication(request: Request, response: Response) {
+        if (request.attribute<String>("subject") == null) {
+            response.header("WWW-Authenticate", """Basic realm="", charset="UTF-8"""")
+            halt(401)
+        }
     }
 }

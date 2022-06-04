@@ -40,6 +40,7 @@ class ServerConfigurer(
             addAuditLogging()
         }
 
+        before("/spaces", userController::requireAuthentication)
         post("/spaces", spaceController::createSpace)
         post("/users", userController::registerUser)
 
