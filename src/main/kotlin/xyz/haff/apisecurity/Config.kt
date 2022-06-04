@@ -16,6 +16,7 @@ data class Config(
     val hsts: Boolean = false,
     val auditLogging: Boolean = false,
     val enableAuthorization: Boolean = false, // TODO: Test it
+    val preventPrivilegeEscalation: Boolean = false, // TODO: Test it
 ) {
     init {
         if (!https && hsts)
@@ -45,6 +46,7 @@ data class Config(
                 enableAuthentication = (properties["ENABLE_AUTHENTICATION"] as String).toBooleanStrict(),
                 auditLogging = (properties["AUDIT_LOGGING"] as String).toBooleanStrict(),
                 enableAuthorization = (properties["ENABLE_AUTHORIZATION"] as String).toBooleanStrict(),
+                preventPrivilegeEscalation = (properties["PREVENT_PRIVILEGE_ESCALATION"] as String).toBooleanStrict(),
             )
         }
     }

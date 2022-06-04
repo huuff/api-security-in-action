@@ -42,7 +42,11 @@ class ServerConfigurer(
             before("/spaces/:spaceId/messages", userController.requirePermission("GET", "r"))
             before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"))
 
-            before("/spaces/:spaceId/members", userController.requirePermission("POST", "r"))
+            if (config.preventPrivilegeEscalation)
+                before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"))
+            else
+                before("/spaces/:spaceId/members", userController.requirePermission("POST", "r"))
+
             post("/spaces/:spaceId/members", spaceController::addMember)
         }
 
