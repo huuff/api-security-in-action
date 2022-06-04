@@ -11,8 +11,6 @@ import java.time.temporal.ChronoUnit
 // TODO: Test it
 class AuditController(
     private val repository: AuditRepository,
-    // TODO: REMOVE
-    private val config: Config,
 ) {
 
     fun auditRequestStart(request: Request, response: Response) {
