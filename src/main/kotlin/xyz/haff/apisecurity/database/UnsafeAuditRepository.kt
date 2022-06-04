@@ -2,6 +2,7 @@ package xyz.haff.apisecurity.database
 
 import org.dalesbred.Database
 import org.json.JSONArray
+import java.sql.Timestamp
 import java.time.Instant
 
 class UnsafeAuditRepository(private val database: Database): AuditRepository() {
@@ -25,7 +26,7 @@ class UnsafeAuditRepository(private val database: Database): AuditRepository() {
         auditId
     }
 
-    override fun list(since: Instant): JSONArray {
-        TODO("Not yet implemented")
-    }
+    override fun list(since: Instant): JSONArray = JSONArray(
+        database.findAll(::rowToJson, "SELECT * FROM audit_log WHERE audit_time >= '${Timestamp.from(since)}' LIMIT 20")
+    )
 }
