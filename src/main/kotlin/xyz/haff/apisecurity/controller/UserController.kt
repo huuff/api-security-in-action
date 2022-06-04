@@ -2,17 +2,20 @@ package xyz.haff.apisecurity.controller
 
 import com.lambdaworks.crypto.SCryptUtil
 import org.json.JSONObject
+import spark.Filter
 import spark.Request
 import spark.Response
 import spark.Spark.halt
 import xyz.haff.apisecurity.Config
+import xyz.haff.apisecurity.database.PermissionsRepository
 import xyz.haff.apisecurity.database.UserRepository
 import xyz.haff.apisecurity.util.NAME_PATTERN
 import java.nio.charset.StandardCharsets
 import java.util.*
 
 class UserController(
-    private val repository: UserRepository,
+    private val userRepository: UserRepository,
+    private val permissionsRepository: PermissionsRepository,
     private val config: Config,
 ) {
     fun registerUser(request: Request, response: Response): JSONObject {
@@ -28,7 +31,7 @@ class UserController(
         }
 
         val hash = SCryptUtil.scrypt(password, 32768, 8, 1)
-        repository.save(username, hash)
+        userRepository.save(username, hash)
 
         response.status(201)
         response.header("Location", "/users/$username")
@@ -47,7 +50,7 @@ class UserController(
         if (config.inputValidation && !username.matches(NAME_PATTERN))
             throw IllegalArgumentException("Invalid username")
 
-        val hash = repository.findHashedPassword(username)
+        val hash = userRepository.findHashedPassword(username)
         if (hash?.let { SCryptUtil.check(password, hash)} == true) {
             request.attribute("subject", username)
         }
@@ -59,5 +62,22 @@ class UserController(
             response.header("WWW-Authenticate", """Basic realm="", charset="UTF-8"""")
             halt(401)
         }
+    }
+
+    // TODO: Test it
+    fun requirePermission(method: String, requiredPermissions: String): Filter = Filter { request: Request, response: Response ->
+        if (request.requestMethod() != method) {
+            return@Filter
+        }
+
+        requireAuthentication(request, response)
+
+        val spaceId = request.params(":spaceId").toLong()
+        val username = request.attribute<String>("subject")
+
+        val permissions = permissionsRepository.find(spaceId, username)
+
+        if (requiredPermissions !in permissions)
+            halt(403)
     }
 }

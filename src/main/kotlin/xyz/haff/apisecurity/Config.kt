@@ -15,10 +15,14 @@ data class Config(
     val https: Boolean = false,
     val hsts: Boolean = false,
     val auditLogging: Boolean = false,
+    val enableAuthorization: Boolean = false, // TODO: Test it
 ) {
     init {
         if (!https && hsts)
             throw IllegalStateException("Can't have HSTS without HTTPS!")
+
+        if (!enableAuthentication && enableAuthorization)
+            throw IllegalStateException("You have to enable authentication to enable authorization!")
     }
 
     companion object {
@@ -39,7 +43,8 @@ data class Config(
                 contentSecurityPolicy = (properties["CONTENT_SECURITY_POLICY"] as String).toBooleanStrict(),
                 rateLimitPerSecond = (properties["RATE_LIMIT_PER_SECOND"] as String).toInt(),
                 enableAuthentication = (properties["ENABLE_AUTHENTICATION"] as String).toBooleanStrict(),
-                auditLogging = (properties["AUDIT_LOGGING"] as String).toBooleanStrict()
+                auditLogging = (properties["AUDIT_LOGGING"] as String).toBooleanStrict(),
+                enableAuthorization = (properties["ENABLE_AUTHORIZATION"] as String).toBooleanStrict(),
             )
         }
     }

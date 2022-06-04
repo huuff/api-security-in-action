@@ -4,13 +4,16 @@ import org.json.JSONObject
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.Config
+import xyz.haff.apisecurity.database.PermissionsRepository
 import xyz.haff.apisecurity.database.SpaceRepository
 import xyz.haff.apisecurity.util.NAME_PATTERN
+import xyz.haff.apisecurity.util.implies
 
 // TODO: Properly separate concerns and clean code to accommodate varying configs? For example, the functionality
 // might be separated into decorators.
 class SpaceController(
     private val spaceRepository: SpaceRepository,
+    private val permissionsRepository: PermissionsRepository,
     private val config: Config,
 ) {
 
@@ -20,13 +23,15 @@ class SpaceController(
         val spaceName = json.getString("name")
         val owner = json.getString("owner")
 
-        if (config.inputValidation) validateInput(spaceName, owner)
+        config.inputValidation implies { validateInput(spaceName, owner) }
 
         if (config.enableAuthentication && (request.attribute<String>("subject") != owner)) {
             throw IllegalArgumentException("Owner must match authenticated user")
         }
 
         val spaceId = spaceRepository.save(spaceName, owner)
+
+        config.enableAuthorization implies { permissionsRepository.save(spaceId, owner, "rwd") }
 
         val spaceURI = "/spaces/$spaceId"
         response.status(201)
