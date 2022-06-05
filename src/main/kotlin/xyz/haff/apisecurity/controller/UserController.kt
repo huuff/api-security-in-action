@@ -63,7 +63,6 @@ class UserController(
         }
     }
 
-    // TODO: Test it
     fun requirePermission(method: String, requiredPermissions: String): Filter = Filter { request: Request, response: Response ->
         if (request.requestMethod() != method) {
             return@Filter

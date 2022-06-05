@@ -1,6 +1,7 @@
 package xyz.haff.apisecurity
 
 import io.kotest.assertions.throwables.shouldNotThrow
+import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.every
@@ -36,7 +37,7 @@ class UserControllerTest : FunSpec({
             }
             val response = mockk<Response>(relaxed = true)
 
-            shouldNotThrow<HaltException> {
+            shouldNotThrowAny {
                 userController.requireAuthentication(request, response)
             }
         }
@@ -56,6 +57,30 @@ class UserControllerTest : FunSpec({
             val filter = userController.requirePermission("GET", "r")
 
             shouldThrow<HaltException> {
+                filter.handle(
+                    mockk {
+                        every { attribute<String>("subject") } returns user
+                        every { params(":spaceId") } returns "1"
+                        every { requestMethod() } returns "GET"
+                    },
+                    mockk(relaxed = true)
+                )
+            }
+        }
+
+        test("proceeds when authorized") {
+            val user = "anon"
+            val userController = UserController(
+                userRepository = mockk(),
+                permissionsRepository = mockk<PermissionsRepository> {
+                    every { find(any(), user) } returns "rwd"
+                },
+                config = mockk(),
+            )
+
+            val filter = userController.requirePermission("GET", "r")
+
+            shouldNotThrowAny {
                 filter.handle(
                     mockk {
                         every { attribute<String>("subject") } returns user
