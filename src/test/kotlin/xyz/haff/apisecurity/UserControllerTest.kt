@@ -9,11 +9,12 @@ import spark.HaltException
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.controller.UserController
+import xyz.haff.apisecurity.database.PermissionsRepository
 
 class UserControllerTest : FunSpec({
 
     context("authentication") {
-        test("returns 401 for missing authentication") {
+        test("halts for missing authentication") {
             val userController = UserController(mockk(), mockk(), mockk())
 
             val request = mockk<Request> {
@@ -37,6 +38,32 @@ class UserControllerTest : FunSpec({
 
             shouldNotThrow<HaltException> {
                 userController.requireAuthentication(request, response)
+            }
+        }
+    }
+
+    context("authorization") {
+        test("halts when unauthorized") {
+            val user = "anon"
+            val userController = UserController(
+                userRepository = mockk(),
+                permissionsRepository = mockk<PermissionsRepository> {
+                    every { find(any(), user) } returns ""
+                },
+                config = mockk(),
+            )
+
+            val filter = userController.requirePermission("GET", "r")
+
+            shouldThrow<HaltException> {
+                filter.handle(
+                    mockk {
+                        every { attribute<String>("subject") } returns user
+                        every { params(":spaceId") } returns "1"
+                        every { requestMethod() } returns "GET"
+                    },
+                    mockk(relaxed = true)
+                )
             }
         }
     }
