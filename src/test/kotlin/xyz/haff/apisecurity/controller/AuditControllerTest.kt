@@ -86,9 +86,8 @@ class AuditControllerTest : FunSpec({
         mockkStatic(Instant::class)
         every { Instant.now() } returns now
 
-        val actualSince = slot<Instant>()
         val auditRepository = mockk<AuditRepository> {
-            every { list(capture(actualSince)) } returns mockk()
+            every { list(any()) } returns mockk()
         }
         val auditController = AuditController(auditRepository)
 
@@ -96,6 +95,6 @@ class AuditControllerTest : FunSpec({
         auditController.readAuditLog(mockk(), mockk())
 
         // ASSERT
-        actualSince.captured shouldBe expectedSince
+        verify { auditRepository.list(expectedSince) }
     }
 })
