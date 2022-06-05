@@ -1,5 +1,6 @@
 package xyz.haff.apisecurity
 
+import com.lambdaworks.crypto.SCryptUtil
 import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
@@ -7,6 +8,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
 import spark.HaltException
 import spark.Request
@@ -14,6 +16,7 @@ import spark.Response
 import xyz.haff.apisecurity.controller.UserController
 import xyz.haff.apisecurity.database.PermissionsRepository
 import xyz.haff.apisecurity.database.UserRepository
+import java.util.*
 
 class UserControllerTest : FunSpec({
 
@@ -44,6 +47,35 @@ class UserControllerTest : FunSpec({
             returnedLocation.captured shouldBe "/users/$expectedUsername"
             jsonResponse.toString() shouldEqualJson """{ "username": "$expectedUsername" }"""
 
+        }
+
+        test("user gets authenticated") {
+            // Arrange
+            val username = "username"
+            val password = "password"
+
+            val hashedPassword = "fakeHashedPassword"
+            val userRepository = mockk<UserRepository> {
+                every { findHashedPassword(username) } returns hashedPassword
+            }
+
+            mockkStatic(SCryptUtil::class)
+            every { SCryptUtil.check(password, hashedPassword) } returns true
+
+            val actualSubject = slot<String>()
+            val basicAuth = Base64.getEncoder().encode("$username:$password".toByteArray()).toString(Charsets.UTF_8)
+            val request = mockk<Request> {
+                every { headers("Authorization") } returns "Basic $basicAuth"
+                every { attribute("subject", capture(actualSubject)) } returns Unit
+            }
+
+            val userController = UserController(userRepository, mockk(), Config(inputValidation = false))
+
+            // Act
+            userController.authenticate(request, mockk())
+
+            // Assert
+            actualSubject.captured shouldBe username
         }
 
         context("requiring authentication") {
