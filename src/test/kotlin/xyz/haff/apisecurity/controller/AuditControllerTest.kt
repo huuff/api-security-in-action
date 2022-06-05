@@ -1,11 +1,9 @@
 package xyz.haff.apisecurity.controller
 
+import io.kotest.core.Tuple4
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.slot
+import io.mockk.*
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.database.AuditRepository
@@ -16,35 +14,25 @@ class AuditControllerTest : FunSpec({
 
     test("audit request") {
         // ARRANGE
-        val method = "GET"
-        val path = "/test"
-        val userId = "userId"
-        val auditId = 1L
-
-        val savedMethod = slot<String>()
-        val savedPath = slot<String>()
-        val savedUserId = slot<String>()
-        val auditRepository = mockk<AuditRepository> {
-            every { saveRequest(capture(savedMethod), capture(savedPath), capture(savedUserId)) } returns auditId
-        }
-
-        val auditController = AuditController(auditRepository)
-        val auditIdSetInRequest = slot<Long>()
-        val request = mockk<Request> {
+        val (method, path, userId, auditId) = Tuple4("GET", "/test", "user", 1L)
+        val request = mockk<Request>(relaxed = true) {
             every { requestMethod() } returns method
             every { pathInfo() } returns path
             every { attribute<String>("subject") } returns userId
-            every { attribute("audit_id", capture(auditIdSetInRequest)) } returns Unit
+        }
+
+        val auditRepository = mockk<AuditRepository> {
+            every { saveRequest(any(), any(), any()) } returns auditId
         }
 
         // ACT
-        auditController.auditRequestStart(request, mockk())
+        AuditController(auditRepository).auditRequestStart(request, mockk())
 
         // ASSERT
-        savedMethod.captured shouldBe method
-        savedPath.captured shouldBe path
-        savedUserId.captured shouldBe userId
-        auditIdSetInRequest.captured shouldBe auditId
+        verify {
+            request.attribute("audit_id", auditId)
+            auditRepository.saveRequest(method, path, userId)
+        }
     }
 
     test("audit response") {
