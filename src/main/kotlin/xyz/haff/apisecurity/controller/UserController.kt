@@ -55,8 +55,7 @@ class UserController(
             request.attribute("subject", username)
         }
     }
-
-    // TODO: Test it
+    
     fun requireAuthentication(request: Request, response: Response) {
         if (request.attribute<String>("subject") == null) {
             response.header("WWW-Authenticate", """Basic realm="", charset="UTF-8"""")
