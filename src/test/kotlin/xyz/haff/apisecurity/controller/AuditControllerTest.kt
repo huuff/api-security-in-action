@@ -6,6 +6,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import spark.Request
+import spark.Response
 import xyz.haff.apisecurity.database.AuditRepository
 
 class AuditControllerTest : FunSpec({
@@ -41,5 +42,48 @@ class AuditControllerTest : FunSpec({
         savedPath.captured shouldBe path
         savedUserId.captured shouldBe userId
         auditIdSetInRequest.captured shouldBe auditId
+    }
+
+    test("audit response") {
+        // ARRANGE
+        val auditId = 1L
+        val method = "GET"
+        val path = "/test"
+        val userId = "anon"
+        val status = 201
+
+        val request = mockk<Request> {
+            every { attribute<Long>("audit_id") } returns auditId
+            every { requestMethod() } returns method
+            every { pathInfo() } returns path
+            every { attribute<String>("subject") } returns userId
+        }
+
+        val response = mockk<Response> {
+            every { status() } returns status
+        }
+
+        val savedAuditId = slot<Long>()
+        val savedMethod = slot<String>()
+        val savedPath = slot<String>()
+        val savedUserId = slot<String>()
+        val savedStatus = slot<Int>()
+
+        val auditRepository = mockk<AuditRepository> {
+            every {
+                saveResponse(capture(savedAuditId), capture(savedMethod), capture(savedPath), capture(savedUserId), capture(savedStatus))
+            } returns 2L
+        }
+        val auditController = AuditController(auditRepository)
+
+        // ACT
+        auditController.auditRequestEnd(request, response)
+
+        // ASSERT
+        savedAuditId.captured shouldBe auditId
+        savedMethod.captured shouldBe method
+        savedPath.captured shouldBe path
+        savedUserId.captured shouldBe userId
+        savedStatus.captured shouldBe status
     }
 })
