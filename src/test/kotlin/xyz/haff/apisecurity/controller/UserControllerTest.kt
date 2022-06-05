@@ -1,4 +1,4 @@
-package xyz.haff.apisecurity
+package xyz.haff.apisecurity.controller
 
 import com.lambdaworks.crypto.SCryptUtil
 import io.kotest.assertions.json.shouldEqualJson
@@ -13,7 +13,7 @@ import io.mockk.slot
 import spark.HaltException
 import spark.Request
 import spark.Response
-import xyz.haff.apisecurity.controller.UserController
+import xyz.haff.apisecurity.Config
 import xyz.haff.apisecurity.database.PermissionsRepository
 import xyz.haff.apisecurity.database.UserRepository
 import java.util.*
