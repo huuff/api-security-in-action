@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.6.10"
+    id("org.jetbrains.kotlinx.kover") version "0.5.0"
 }
 
 group = "xyz.haff"
@@ -15,6 +16,7 @@ tasks.wrapper {
 
 tasks.test {
     useJUnitPlatform()
+    finalizedBy(tasks.koverHtmlReport)
 }
 
 val kotestVersion = "5.3.0"
