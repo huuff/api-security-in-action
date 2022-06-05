@@ -6,10 +6,7 @@ import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkStatic
-import io.mockk.slot
+import io.mockk.*
 import spark.HaltException
 import spark.Request
 import spark.Response
@@ -23,30 +20,26 @@ class UserControllerTest : FunSpec({
     context("authentication") {
 
         test("can register user") {
-            val expectedUsername = "anon"
-            val savedUsername = slot<String>()
-            val userRepository = mockk<UserRepository> {
-                every { save(capture(savedUsername), any()) } returns Unit
-            }
+            val username = "anon"
+            val userRepository = mockk<UserRepository>(relaxed = true)
             val userController = UserController(userRepository, mockk(), Config(inputValidation = false))
 
             val request = mockk<Request> {
-                every { body() } returns """{ "username": "$expectedUsername", "password": "anywoulddothankyou" }"""
+                every { body() } returns """{ "username": "$username", "password": "anywoulddothankyou" }"""
             }
+            val response = mockk<Response>(relaxed = true)
 
-            val returnedStatus = slot<Int>()
-            val returnedLocation = slot<String>()
-            val response = mockk<Response> {
-                every { status(capture(returnedStatus)) } returns Unit
-                every { header("Location", capture(returnedLocation))} returns Unit
-            }
-
+            // ACT
             val jsonResponse = userController.registerUser(request, response)
-            savedUsername.captured shouldBe expectedUsername
-            returnedStatus.captured shouldBe 201
-            returnedLocation.captured shouldBe "/users/$expectedUsername"
-            jsonResponse.toString() shouldEqualJson """{ "username": "$expectedUsername" }"""
 
+            // ASSERT
+            verify {
+                userRepository.save(userId = username, hashedPassword = any())
+                response.status(201)
+                response.header("Location", "/users/$username")
+            }
+
+            jsonResponse.toString() shouldEqualJson """{ "username": "$username" }"""
         }
 
         test("user gets authenticated") {
