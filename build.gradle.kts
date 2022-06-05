@@ -16,6 +16,7 @@ tasks.wrapper {
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("--add-opens", "java.base/java.time=ALL-UNNAMED")
     finalizedBy(tasks.koverHtmlReport)
 }
 

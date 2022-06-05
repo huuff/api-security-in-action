@@ -4,10 +4,13 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
 import io.mockk.slot
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.database.AuditRepository
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class AuditControllerTest : FunSpec({
 
@@ -85,5 +88,26 @@ class AuditControllerTest : FunSpec({
         savedPath.captured shouldBe path
         savedUserId.captured shouldBe userId
         savedStatus.captured shouldBe status
+    }
+
+    test("read audit log") {
+        // ARRANGE
+        val now = Instant.now()
+        val expectedSince = now.minus(1, ChronoUnit.HOURS)
+
+        mockkStatic(Instant::class)
+        every { Instant.now() } returns now
+
+        val actualSince = slot<Instant>()
+        val auditRepository = mockk<AuditRepository> {
+            every { list(capture(actualSince)) } returns mockk()
+        }
+        val auditController = AuditController(auditRepository)
+
+        // ACT
+        auditController.readAuditLog(mockk(), mockk())
+
+        // ASSERT
+        actualSince.captured shouldBe expectedSince
     }
 })

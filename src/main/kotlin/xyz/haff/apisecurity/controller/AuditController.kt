@@ -8,7 +8,6 @@ import xyz.haff.apisecurity.database.AuditRepository
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-// TODO: Test it
 class AuditController(
     private val repository: AuditRepository,
 ) {
