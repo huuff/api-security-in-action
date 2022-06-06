@@ -45,6 +45,7 @@ class SpaceController(
         }
     }
 
+    // TODO: Test this!
     fun addMember(request: Request, response: Response): JSONObject {
         val json = JSONObject(request.body())
         val spaceId = request.params(":spaceId").toLong()
