@@ -13,12 +13,17 @@ import xyz.haff.apisecurity.database.SpaceRepository
 
 class SpaceControllerTest : FunSpec({
 
-    test("a space is actually created") {
+    fun buildRequest(owner: String, spaceName: String) = """
+                {
+                    "name": "$spaceName",
+                    "owner": "$owner",
+                }
+            """
+
+    test("gives a correct response") {
         // ARRANGE
         val (spaceId, owner, spaceName) = Tuple3(1L, "owner", "space")
-        val mockSpaceRepository = mockk<SpaceRepository> {
-            every { save(any(), any()) } returns spaceId
-        }
+        val mockSpaceRepository = mockk<SpaceRepository> { every { save(any(), any()) } returns spaceId }
 
         val spaceController = SpaceController(
             spaceRepository = mockSpaceRepository,
@@ -26,21 +31,13 @@ class SpaceControllerTest : FunSpec({
             config = Config(),
         )
 
-        val request = mockk<Request> {
-            every { body() } returns """
-                {
-                    "name": "$spaceName",
-                    "owner": "$owner",
-                }
-            """.trimIndent()
-        }
+        val request = mockk<Request> { every { body() } returns buildRequest(owner, spaceName) }
         val response = mockk<Response>(relaxed = true)
 
         // ACT
         val responseBody = spaceController.createSpace(request, response)
 
         // ASSERT
-        verify { mockSpaceRepository.save(spaceName, owner) }
         verify { response.status(201) }
         verify { response.header("Location", "/spaces/$spaceId") }
 
@@ -50,5 +47,13 @@ class SpaceControllerTest : FunSpec({
                 "uri": "/spaces/$spaceId"
             }
         """.trimIndent()
+    }
+
+    test("a space is actually created") {
+
+    }
+
+    test("an owner is given full privileges") {
+
     }
 })
