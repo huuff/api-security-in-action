@@ -2,6 +2,10 @@ package xyz.haff.apisecurity
 
 import java.util.*
 
+/**
+ * @param validate Whether to validate whether the configuration makes sense. Some options might not usually make sense
+ * along others, but might be useful to enable them anyway for testing.
+ */
 data class Config(
     val preparedStatements: Boolean = false,
     val dbUnprivilegedUser: Boolean = false,
@@ -17,13 +21,16 @@ data class Config(
     val auditLogging: Boolean = false,
     val enableAuthorization: Boolean = false, // TODO: Test it
     val preventPrivilegeEscalation: Boolean = false, // TODO: Test it
+    val validate: Boolean = true, // Whether to check that configuration makes sense
 ) {
     init {
-        if (!https && hsts)
-            throw IllegalStateException("Can't have HSTS without HTTPS!")
+        if (validate) {
+            if (!https && hsts)
+                throw IllegalStateException("Can't have HSTS without HTTPS!")
 
-        if (!enableAuthentication && enableAuthorization)
-            throw IllegalStateException("You have to enable authentication to enable authorization!")
+            if (!enableAuthentication && enableAuthorization)
+                throw IllegalStateException("You have to enable authentication to enable authorization!")
+        }
     }
 
     companion object {

@@ -31,7 +31,9 @@ class SpaceController(
 
         val spaceId = spaceRepository.save(spaceName, owner)
 
-        config.enableAuthorization implies { permissionsRepository.save(spaceId, owner, "rwd") }
+        config.enableAuthorization implies {
+            permissionsRepository.save(spaceId, owner, "rwd")
+        }
 
         val spaceURI = "/spaces/$spaceId"
         response.status(201)

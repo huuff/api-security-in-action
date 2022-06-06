@@ -9,6 +9,7 @@ import io.mockk.verify
 import spark.Request
 import spark.Response
 import xyz.haff.apisecurity.Config
+import xyz.haff.apisecurity.database.PermissionsRepository
 import xyz.haff.apisecurity.database.SpaceRepository
 
 class SpaceControllerTest : FunSpec({
@@ -49,11 +50,28 @@ class SpaceControllerTest : FunSpec({
         """.trimIndent()
     }
 
-    test("a space is actually created") {
+    test("an owner is given full privileges") {
+        // ARRANGE
+        val (spaceId, owner, spaceName) = Tuple3(1L, "owner", "space")
+        val mockPermissionsRepository = mockk<PermissionsRepository>(relaxed = true)
 
+        val spaceController = SpaceController(
+            spaceRepository = mockk { every { save(any(), any()) } returns spaceId },
+            permissionsRepository = mockPermissionsRepository,
+            config = Config(enableAuthorization = true, validate = false),
+        )
+
+        val request = mockk<Request> { every { body() } returns buildRequest(owner, spaceName) }
+        val response = mockk<Response>(relaxed = true)
+
+        // ACT
+        spaceController.createSpace(request, response)
+
+        // ASSERT
+        verify { mockPermissionsRepository.save(spaceId, owner, "rwd") }
     }
 
-    test("an owner is given full privileges") {
+    test("a space is actually created") {
 
     }
 })
