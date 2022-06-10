@@ -11,6 +11,7 @@ abstract class AuditRepository {
     abstract fun saveResponse(auditId: Long, method: String, path: String, userId: String?, status: Int): Long
     abstract fun list(since: Instant): JSONArray
 
+    // TODO: Am i missing the user ids in the output?
     protected fun rowToJson(row: ResultSet) = JSONObject().apply {
         put("id", row.getLong("audit_id"))
         put("method", row.getString("method"))

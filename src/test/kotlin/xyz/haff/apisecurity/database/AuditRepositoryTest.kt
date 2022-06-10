@@ -2,19 +2,52 @@ package xyz.haff.apisecurity.database
 
 import io.kotest.core.Tuple2
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import org.dalesbred.Database
-import xyz.haff.apisecurity.Config
+import org.json.JSONObject
 import xyz.haff.apisecurity.createDatabase
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 
+private enum class AuditType { request, response }
 class AuditRepositoryTest: FunSpec({
 
-    listOf<() -> Tuple2<AuditRepository, Database>>(
-        { createDatabase(Config()).let { Tuple2(SafeAuditRepository(it), it) } },
-        { createDatabase(Config()).let { Tuple2(SafeAuditRepository(it), it) } },
-    ).forEach {
-        val (repository, database) = it()
-        test("correctly saves and lists " + repository.javaClass.name) {
 
+    listOf<Tuple2<(Database) -> AuditRepository, String>>(
+        Tuple2(::SafeAuditRepository, "safe audit repository"),
+        Tuple2(::UnsafeAuditRepository, "unsafe audit repository"),
+    ).forEach { (createRepository, repositoryName) ->
+        listOf(AuditType.request, AuditType.response).forEach { auditType ->
+            when (auditType) {
+                AuditType.request -> test(repositoryName + ": correctly saves and lists request") {
+                    val repository = createRepository(createDatabase())
+                    val id = repository.saveRequest("GET", "/test", "someone")
+                    val saved = repository.list(Instant.now().minus(1, ChronoUnit.HOURS))
+
+                    println(saved)
+
+                    saved shouldHaveSize 1
+                    val element = saved[0] as JSONObject
+                    element["path"] shouldBe "/test"
+                    element["method"] shouldBe "GET"
+                    element["id"] shouldBe id
+                }
+                AuditType.response -> test(repositoryName + ": correctly saves and lists response") {
+                    val repository = createRepository(createDatabase())
+                    repository.saveResponse(1, "GET", "/test", "someone", 200)
+                    val saved = repository.list(Instant.now().minus(1, ChronoUnit.HOURS))
+
+                    println(saved)
+
+                    saved shouldHaveSize 1
+                    val element = saved[0] as JSONObject
+                    element["path"] shouldBe "/test"
+                    element["method"] shouldBe "GET"
+                    element["id"] shouldBe 1
+                    element["status"] shouldBe "200"
+                }
+            }
         }
     }
 })
