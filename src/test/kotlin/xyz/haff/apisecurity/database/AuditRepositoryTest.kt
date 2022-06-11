@@ -30,7 +30,7 @@ class AuditRepositoryTest : FunSpec({
             element["method"] shouldBe "GET"
             element["id"] shouldBe id
         }
-        
+
         test(repositoryName + ": correctly saves and lists response") {
             val repository = createRepository(createDatabase())
             repository.saveResponse(1, "GET", "/test", "someone", 200)
